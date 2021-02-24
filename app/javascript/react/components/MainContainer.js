@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react"
 import GetMatchIDForm from './GetMatchIDForm'
+import CreateAirtableRecordForm from './CreateAirtableRecordForm'
 import fetchAirtableData from './fetchAirtableData'
+import sortTable from './sortTable'
+
+var Airtable = require('airtable');
+const AIRTABLE_KEY = document.cookie.split('; ').find((KVString)=> KVString.split('=')[0]==='AIRTABLE_KEY').split('=')[1]
+var base = new Airtable({apiKey: AIRTABLE_KEY}).base('appnZsyFI9U2kNhYf');
 
 const MainContainer = (props) => {
   const[airtableData, setAirtableData] = useState([])
@@ -14,13 +20,116 @@ const MainContainer = (props) => {
     }, []
     )
 
+  function handleMatchWon(event, index){
+    event.preventDefault()
+    console.log('+1')
+    console.log(airtableData[index].get('MatchesPlayed'))
+    const id = airtableData[index].id
+    const playerName = airtableData[index].fields.PlayerName
+    const updatedMatches = airtableData[index].fields.MatchesPlayed + 1
+    const updatedWins = airtableData[index].fields.MatchesWon + 1
+    const updatedLosses = airtableData[index].fields.MatchesLost
+    base('Dota Player Info').update([
+      {
+        "id": id,
+        "fields": {
+          "PlayerName": playerName,
+          "MatchesPlayed": updatedMatches,
+          "MatchesWon": updatedWins,
+          "MatchesLost": updatedLosses
+        }
+      }
+    ])
+    .then(()=>{
+      fetchAirtableData()
+      .then(records => {
+        setAirtableData(records)        
+      })
+    })
+  }
+
+  function handleMatchLost(event, index){
+    event.preventDefault()
+    console.log('-1')
+    console.log(airtableData[index].get('MatchesPlayed'))
+    const id = airtableData[index].id
+    const playerName = airtableData[index].fields.PlayerName
+    const updatedMatches = airtableData[index].fields.MatchesPlayed + 1
+    const updatedWins = airtableData[index].fields.MatchesWon
+    const updatedLosses = airtableData[index].fields.MatchesLost + 1
+    base('Dota Player Info').update([
+      {
+        "id": id,
+        "fields": {
+          "PlayerName": playerName,
+          "MatchesPlayed": updatedMatches,
+          "MatchesWon": updatedWins,
+          "MatchesLost": updatedLosses
+        }
+      }
+    ])
+    .then(()=>{
+      fetchAirtableData()
+      .then(records => {
+        setAirtableData(records)        
+      })
+    })
+  }
+
+  const addNewRecord = (formData) =>{
+    console.log(formData)
+    base('Dota Player Info').create([
+      {
+        "fields": {
+          "PlayerName": formData.PlayerName,
+          "MatchesPlayed": formData.Matches,
+          "MatchesWon": formData.Wins,
+          "MatchesLost": formData.Losses
+        }
+      }
+    ])
+    console.log('record created')
+  }
+
   return(
     <div>
-      <ul>
-        {airtableData.map(function(record) {
-          return <li key={record.getId()}>{record.get('Player Name')}</li>
-        })}
-      </ul>
+      <table id='PlayerRecords' class="js-sort-table">
+        <thead>
+          <tr>
+            <th width='50'>Player Name</th>
+            <th width='50' class="js-sort-number">Total Matches</th>
+            <th width='50' class="js-sort-number">Wins</th>
+            <th width='50' class="js-sort-number">Losses</th>
+            <th width='50' class="js-sort-number">Win %</th>
+            <th width='30'>Add Win</th>
+            <th width='30'>Add Loss</th>
+          </tr>
+        </thead>
+        <tbody>
+            {airtableData.map(function(record, index) {
+              return (
+                <tr key={record.getId()}>
+                  <td>{record.get('PlayerName')}</td>
+                  <td>{record.get('MatchesPlayed')}</td>
+                  <td>{record.get('MatchesWon')}</td>
+                  <td>{record.get('MatchesLost')}</td>
+                  <td>{Math.round(record.get('Win%')*100) + '%'}</td>
+                  <td>
+                  <form onSubmit={(event) => handleMatchWon(event, index)}>
+                    <input className="button" type="submit" value="Add Win" />
+                  </form>
+                  </td>
+                  <td>
+                  <form onSubmit={(event) => handleMatchLost(event, index)}>
+                    <input className="button" type="submit" value="Add Loss" />
+                  </form>
+                  </td>
+                </tr>
+              )
+            })}
+        </tbody>
+      </table>
+      <CreateAirtableRecordForm addNewRecord={addNewRecord}/>
       <GetMatchIDForm/>
     </div>
   )
