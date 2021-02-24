@@ -1,5 +1,5 @@
 import React from "react"
-
+import GetMatchIDForm from './GetMatchIDForm'
 const InhouseIndexContainer = (props) => {
 
   return(
@@ -7,6 +7,7 @@ const InhouseIndexContainer = (props) => {
       <h1>
         Hello from the inhouseIndexContainer
       </h1>
+      {GetMatchIDForm}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 
 import dotaHeroes from './dotaHeroIDs.json'
 import gameToImage from './gameToImage.js'
@@ -49,6 +49,7 @@ const GetMatchIDForm = (props) => {
         playerDeaths: latestMatchDataJSON.players[index].deaths,
         playerAssists: latestMatchDataJSON.players[index].assists
       });
+      // console.log(player)
       matchData.players.push(player);
       index++
     }
@@ -68,13 +69,14 @@ const GetMatchIDForm = (props) => {
   let gameSummary
   let imageBuffer
 
+
   async function handleSubmit(event){
     event.preventDefault();
     // window.open(URL, '_blank');
     // insert api fetch here
     // console.log(getGameSummary(matchID.MatchID))
     gameSummary = await getGameSummary(matchID.MatchID)
-    console.log(gameSummary);
+    // console.log(gameSummary);
     const title = `match ID: ${matchID.MatchID}.png`
     imageBuffer = await gameToImage(gameSummary, title)
     // fetch(`https://api.opendota.com/api/matches/${matchID.MatchID}`)
@@ -82,6 +84,29 @@ const GetMatchIDForm = (props) => {
     // .then(json => console.log(json))
     setMatchID({
       MatchID: ""
+    })
+    didPlayerWin()
+  }
+
+  const playersNames = props.playersNames
+
+  const didPlayerWin = () =>{
+    const playersToBeAdded = []
+    gameSummary.players.forEach((player)=>{
+      playersNames.forEach((playersName)=>{
+        if(player.playerName === playersName && player.teamName === gameSummary.winningTeam){
+          // Updated this player's record for a win
+          console.log(`${playersName} won!`)
+        }else if(player.playerName === playersName){
+          // Updated this player's record for a loss
+          console.log(`${playersName} lost :(`)
+        }else if(!playersNames.includes(player.playerName) && !playersToBeAdded.includes(player.playerName)){
+          // player is not in the list of players yet
+          playersToBeAdded.push(player.playerName)
+          // would you like to add the player to the current list of players?
+          console.log(`${player.playerName} is not in the current list of players`)
+        }
+      })
     })
   }
 

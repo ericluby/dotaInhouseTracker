@@ -69,7 +69,7 @@ const CreateAirtableRecordForm = (props) =>{
             value={newRecord.Losses}
           />
         </label> */}
-        <input className="button" type="submit" value="Submit" />
+        <input className="button" type="submit" value="Add Player" />
       </form>
     </div>
   )

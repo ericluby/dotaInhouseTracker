@@ -90,6 +90,7 @@ const MainContainer = (props) => {
     ])
     console.log('record created')
   }
+  const playersNames = []
 
   return(
     <div>
@@ -107,6 +108,10 @@ const MainContainer = (props) => {
         </thead>
         <tbody>
             {airtableData.map(function(record, index) {
+              const playerName = record.get('PlayerName')
+              // playersNames.push({playerName, index})
+              playersNames.push(playerName)
+              console.log(playersNames)
               return (
                 <tr key={record.getId()}>
                   <td>{record.get('PlayerName')}</td>
@@ -130,7 +135,9 @@ const MainContainer = (props) => {
         </tbody>
       </table>
       <CreateAirtableRecordForm addNewRecord={addNewRecord}/>
-      <GetMatchIDForm/>
+      <GetMatchIDForm
+        playersNames={playersNames}
+      />
     </div>
   )
 }
