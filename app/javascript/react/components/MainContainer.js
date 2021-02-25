@@ -12,7 +12,7 @@ const MainContainer = (props) => {
   const[airtableData, setAirtableData] = useState([])
 
   useEffect(() => {
-    fetchAirtableData()
+    fetchAirtableData('playerInfo')
       .then(records => {
         setAirtableData(records)        
       })
@@ -22,8 +22,6 @@ const MainContainer = (props) => {
 
   function handleMatchWon(event, index){
     event.preventDefault()
-    console.log('+1')
-    console.log(airtableData[index].get('MatchesPlayed'))
     const id = airtableData[index].id
     const playerName = airtableData[index].fields.PlayerName
     const updatedMatches = airtableData[index].fields.MatchesPlayed + 1
@@ -41,7 +39,7 @@ const MainContainer = (props) => {
       }
     ])
     .then(()=>{
-      fetchAirtableData()
+      fetchAirtableData('playerInfo')
       .then(records => {
         setAirtableData(records)        
       })
@@ -50,8 +48,6 @@ const MainContainer = (props) => {
 
   function handleMatchLost(event, index){
     event.preventDefault()
-    console.log('-1')
-    console.log(airtableData[index].get('MatchesPlayed'))
     const id = airtableData[index].id
     const playerName = airtableData[index].fields.PlayerName
     const updatedMatches = airtableData[index].fields.MatchesPlayed + 1
@@ -69,7 +65,57 @@ const MainContainer = (props) => {
       }
     ])
     .then(()=>{
-      fetchAirtableData()
+      fetchAirtableData('playerInfo')
+      .then(records => {
+        setAirtableData(records)        
+      })
+    })
+  }
+
+  const addLossToPlayer = (playerIndex) =>{
+    const id = airtableData[playerIndex].id
+    const playerName = airtableData[playerIndex].fields.PlayerName
+    const updatedMatches = airtableData[playerIndex].fields.MatchesPlayed + 1
+    const updatedWins = airtableData[playerIndex].fields.MatchesWon
+    const updatedLosses = airtableData[playerIndex].fields.MatchesLost + 1
+    base('Dota Player Info').update([
+      {
+        "id": id,
+        "fields": {
+          "PlayerName": playerName,
+          "MatchesPlayed": updatedMatches,
+          "MatchesWon": updatedWins,
+          "MatchesLost": updatedLosses
+        }
+      }
+    ])
+    .then(()=>{
+      fetchAirtableData('playerInfo')
+      .then(records => {
+        setAirtableData(records)        
+      })
+    })
+  }
+
+  const addWinToPlayer = (playerIndex) =>{
+    const id = airtableData[playerIndex].id
+    const playerName = airtableData[playerIndex].fields.PlayerName
+    const updatedMatches = airtableData[playerIndex].fields.MatchesPlayed + 1
+    const updatedWins = airtableData[playerIndex].fields.MatchesWon + 1
+    const updatedLosses = airtableData[playerIndex].fields.MatchesLost
+    base('Dota Player Info').update([
+      {
+        "id": id,
+        "fields": {
+          "PlayerName": playerName,
+          "MatchesPlayed": updatedMatches,
+          "MatchesWon": updatedWins,
+          "MatchesLost": updatedLosses
+        }
+      }
+    ])
+    .then(()=>{
+      fetchAirtableData('playerInfo')
       .then(records => {
         setAirtableData(records)        
       })
@@ -77,7 +123,6 @@ const MainContainer = (props) => {
   }
 
   const addNewRecord = (formData) =>{
-    console.log(formData)
     base('Dota Player Info').create([
       {
         "fields": {
@@ -109,9 +154,7 @@ const MainContainer = (props) => {
         <tbody>
             {airtableData.map(function(record, index) {
               const playerName = record.get('PlayerName')
-              // playersNames.push({playerName, index})
-              playersNames.push(playerName)
-              console.log(playersNames)
+              playersNames.push({'name': playerName, 'index': index})
               return (
                 <tr key={record.getId()}>
                   <td>{record.get('PlayerName')}</td>
@@ -137,6 +180,8 @@ const MainContainer = (props) => {
       <CreateAirtableRecordForm addNewRecord={addNewRecord}/>
       <GetMatchIDForm
         playersNames={playersNames}
+        addWinToPlayer={addWinToPlayer}
+        addLossToPlayer={addLossToPlayer}
       />
     </div>
   )

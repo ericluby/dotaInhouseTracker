@@ -11,9 +11,15 @@ var base = new Airtable({apiKey: AIRTABLE_KEY}).base('appnZsyFI9U2kNhYf');
 // FETCH FIRST PAGE
 // If you only want the first page of records, you can
 // use `firstPage` instead of `eachPage`.
-async function fetchAirtableData(){
+async function fetchAirtableData(type){
+    let baseTable
+    if(type==="playerInfo"){
+        baseTable = 'Dota Player Info'
+    }else if(type==="parsedMatches"){
+        baseTable = 'Parsed Matches'
+    }
     return new Promise((resolve,reject)=>{
-        base('Dota Player Info').select({
+        base(baseTable).select({
             view: 'Grid view'
         }).firstPage(function(err, records) {
             if(err){
@@ -21,9 +27,9 @@ async function fetchAirtableData(){
                  return reject(err); 
                 }
             records.forEach(function(record) {
-                console.log('Retrieved', record.get('PlayerName'));
+                // console.log('Retrieved', record.get('PlayerName'));
             });
-            console.log(records[0].fields.PlayerName)
+            // console.log(records[0].fields.PlayerName)
             return resolve(records)
         });
     })

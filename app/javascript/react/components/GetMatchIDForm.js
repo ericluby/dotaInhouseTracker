@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react"
 
+import fetchAirtableData from './fetchAirtableData'
 import dotaHeroes from './dotaHeroIDs.json'
 import gameToImage from './gameToImage.js'
 
-
+var Airtable = require('airtable');
+const AIRTABLE_KEY = document.cookie.split('; ').find((KVString)=> KVString.split('=')[0]==='AIRTABLE_KEY').split('=')[1]
+var base = new Airtable({apiKey: AIRTABLE_KEY}).base('appnZsyFI9U2kNhYf');
 
 const GetMatchIDForm = (props) => {
   const [matchID, setMatchID] = useState({
@@ -23,7 +26,6 @@ const GetMatchIDForm = (props) => {
     }
   }
   async function getGameSummary(matchID){
-    //const latestMatch = dotaMatchesDataJSON[0].match_id; //uncomment for real data.  sets latestmatch to the most recent match
     const latestMatchDataJSON = await fetch(`https://api.opendota.com/api/matches/${matchID}?limit=1`).then(r => r.json());
   
     const gameDate = new Date(latestMatchDataJSON.start_time*1000);
@@ -49,7 +51,6 @@ const GetMatchIDForm = (props) => {
         playerDeaths: latestMatchDataJSON.players[index].deaths,
         playerAssists: latestMatchDataJSON.players[index].assists
       });
-      // console.log(player)
       matchData.players.push(player);
       index++
     }
@@ -58,8 +59,6 @@ const GetMatchIDForm = (props) => {
   };
   // end of copied
 
-
-  // let URL = `https://api.opendota.com/api/matches/${matchID.MatchID}`
   const handleChange = event => {
     setMatchID({
       ...matchID,
@@ -68,39 +67,76 @@ const GetMatchIDForm = (props) => {
   };
   let gameSummary
   let imageBuffer
-
-
+  let newMatch
+  
   async function handleSubmit(event){
     event.preventDefault();
-    // window.open(URL, '_blank');
-    // insert api fetch here
-    // console.log(getGameSummary(matchID.MatchID))
     gameSummary = await getGameSummary(matchID.MatchID)
-    // console.log(gameSummary);
     const title = `match ID: ${matchID.MatchID}.png`
     imageBuffer = await gameToImage(gameSummary, title)
-    // fetch(`https://api.opendota.com/api/matches/${matchID.MatchID}`)
-    // .then(response => response.json())
-    // .then(json => console.log(json))
-    setMatchID({
-      MatchID: ""
+    checkIfNewMatch(matchID)
+    .then(()=>{
+      if(newMatch === true){
+        didPlayerWin()
+      }
+      setMatchID({
+        MatchID: ""
+      })
     })
-    didPlayerWin()
+  }
+
+  const matchesPlayed = []
+
+
+  async function checkIfNewMatch(formMatchID){
+    fetchAirtableData('parsedMatches')
+      .then(records => {
+        const airtableData = records 
+    airtableData.map(function(record, index) {
+      const matchPlayed = record.get('MatchID')
+      matchesPlayed.push(matchPlayed)
+      })
+    }).then(()=>{
+      if(matchesPlayed.includes(formMatchID.MatchID)){
+        console.log('this match has already been parsed')
+      }else{
+        console.log('this is a new game that I am parsing')
+        // add matchID to airtable
+        base('Parsed Matches').create([
+          {
+            "fields": {
+              "MatchID": formMatchID.MatchID
+            }
+          }
+        ])
+        didPlayerWin()
+      }
+    })
+  }
+
+  const callAddWin = (playerIndex) =>{
+    props.addWinToPlayer(playerIndex)
+  }
+
+  const callAddLoss = (playerIndex) =>{
+    props.addLossToPlayer(playerIndex)
   }
 
   const playersNames = props.playersNames
 
   const didPlayerWin = () =>{
     const playersToBeAdded = []
+    const playerNamesArr = []
     gameSummary.players.forEach((player)=>{
       playersNames.forEach((playersName)=>{
-        if(player.playerName === playersName && player.teamName === gameSummary.winningTeam){
+        playerNamesArr.push(playersName.name)
+        if(player.playerName === playersName.name && player.teamName === gameSummary.winningTeam){
           // Updated this player's record for a win
-          console.log(`${playersName} won!`)
-        }else if(player.playerName === playersName){
+          callAddWin(playersName.index)
+        }else if(player.playerName === playersName.name){
           // Updated this player's record for a loss
-          console.log(`${playersName} lost :(`)
-        }else if(!playersNames.includes(player.playerName) && !playersToBeAdded.includes(player.playerName)){
+          callAddLoss(playersName.index)
+        }else if(!playerNamesArr.includes(player.playerName) && !playersToBeAdded.includes(player.playerName)){
           // player is not in the list of players yet
           playersToBeAdded.push(player.playerName)
           // would you like to add the player to the current list of players?
