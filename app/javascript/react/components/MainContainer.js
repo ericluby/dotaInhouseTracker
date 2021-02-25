@@ -88,7 +88,8 @@ const MainContainer = (props) => {
           "MatchesLost": updatedLosses,
           "Kills": updatedKills,
           "Deaths": updatedDeaths,
-          "Assists": updatedAssists
+          "Assists": updatedAssists,
+          "DotaBuff": player.playerDotaBuff
         }
       }
     ])
@@ -117,7 +118,8 @@ const MainContainer = (props) => {
           "MatchesWon": updatedWins,
           "Kills": updatedKills,
           "Deaths": updatedDeaths,
-          "Assists": updatedAssists
+          "Assists": updatedAssists,
+          "DotaBuff": player.playerDotaBuff
         }
       }
     ])
@@ -140,7 +142,8 @@ const MainContainer = (props) => {
           "MatchesLost": formData.Losses,
           "Kills": formData.Kills,
           "Deaths": formData.Deaths,
-          "Assists": formData.Assists
+          "Assists": formData.Assists,
+          "DotaBuff": formData.DotaBuff
         }
       }
     ])
@@ -182,6 +185,7 @@ const MainContainer = (props) => {
             <th width='50' class="js-sort-number">Average Kills</th>
             <th width='50' class="js-sort-number">Average Deaths</th>
             <th width='50' class="js-sort-number">Average Assists</th>
+            <th width='50'>DotaBuff</th>
             <th width='30'>Add Win</th>
             <th width='30'>Add Loss</th>
           </tr>
@@ -200,6 +204,10 @@ const MainContainer = (props) => {
                   <td>{record.get('AverageKills') + ' '}</td>
                   <td>{record.get('AverageDeaths') + ' '}</td>
                   <td>{record.get('AverageAssists') + ' '}</td>
+                  <td>
+                    <a href={record.get('DotaBuff')} target="_blank">{record.get('PlayerName')}'s DotaBuff</a>
+                  </td>
+
                   <td>
                     <form onSubmit={(event) => assignMatchWon(event, index)}>
                       <input className="button" type="submit" value="Add Win" />

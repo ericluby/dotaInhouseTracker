@@ -15,8 +15,10 @@ const GetMatchIDForm = (props) => {
 
   //copied from old code
   class Player {
-    constructor({playerName, playerHeroID, playerHeroName, teamName, playerKills, playerDeaths, playerAssists, playerWon}){
+    constructor({playerName, playerID, playerDotaBuff, playerHeroID, playerHeroName, teamName, playerKills, playerDeaths, playerAssists, playerWon}){
       this.playerName = playerName;
+      this.playerID = playerID;
+      this.playerDotaBuff = playerDotaBuff;
       this.playerHeroID = playerHeroID;
       this.playerHeroName = playerHeroName;
       this.teamName = teamName;
@@ -47,8 +49,11 @@ const GetMatchIDForm = (props) => {
       if ((latestMatchDataJSON.radiant_win ? 'radiant' : 'dire') === (latestMatchDataJSON.players[index].isRadiant ? "radiant" : "dire")){
         playerWin = true
       }else{playerWin = false}
+      console.log(latestMatchDataJSON.players[index])
       const player = new Player({
         playerName: latestMatchDataJSON.players[index].personaname,
+        playerID: latestMatchDataJSON.players[index].account_id,
+        playerDotaBuff: `https://www.dotabuff.com/players/${latestMatchDataJSON.players[index].account_id}`,
         playerHeroID: latestMatchDataJSON.players[index].hero_id,
         playerHeroName: dotaHeroes.find((dotaHeroes) => dotaHeroes.id === latestMatchDataJSON.players[index].hero_id).name,
         teamName: latestMatchDataJSON.players[index].isRadiant ? "radiant" : "dire",
@@ -93,7 +98,6 @@ const GetMatchIDForm = (props) => {
   }
 
   const matchesPlayed = []
-
 
   async function checkIfNewMatch(formMatchID){
     fetchAirtableData('parsedMatches')

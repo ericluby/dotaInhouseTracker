@@ -21,10 +21,12 @@ const AddNewPlayerTile = (props) => {
     Losses: updatedLosses,
     Kills: props.playerNameToAdd.playerKills,
     Deaths: props.playerNameToAdd.playerDeaths,
-    Assists: props.playerNameToAdd.playerAssists
+    Assists: props.playerNameToAdd.playerAssists,
+    DotaBuff: props.playerNameToAdd.playerDotaBuff
   }
 
   const handleSubmit = (event) =>{
+    console.log(newRecord)
     event.preventDefault()
     props.addNewRecord(newRecord)
   }
