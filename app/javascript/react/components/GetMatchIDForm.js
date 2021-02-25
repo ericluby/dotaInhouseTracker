@@ -15,7 +15,7 @@ const GetMatchIDForm = (props) => {
 
   //copied from old code
   class Player {
-    constructor({playerName, playerHeroID, playerHeroName, teamName, playerKills, playerDeaths, playerAssists}){
+    constructor({playerName, playerHeroID, playerHeroName, teamName, playerKills, playerDeaths, playerAssists, playerWon}){
       this.playerName = playerName;
       this.playerHeroID = playerHeroID;
       this.playerHeroName = playerHeroName;
@@ -23,6 +23,7 @@ const GetMatchIDForm = (props) => {
       this.playerKills = playerKills;
       this.playerDeaths = playerDeaths;
       this.playerAssists = playerAssists
+      this.playerWon = playerWon
     }
   }
   async function getGameSummary(matchID){
@@ -42,6 +43,10 @@ const GetMatchIDForm = (props) => {
   
     let index = 0;
     while(index < 10){
+      let playerWin
+      if ((latestMatchDataJSON.radiant_win ? 'radiant' : 'dire') === (latestMatchDataJSON.players[index].isRadiant ? "radiant" : "dire")){
+        playerWin = true
+      }else{playerWin = false}
       const player = new Player({
         playerName: latestMatchDataJSON.players[index].personaname,
         playerHeroID: latestMatchDataJSON.players[index].hero_id,
@@ -49,8 +54,10 @@ const GetMatchIDForm = (props) => {
         teamName: latestMatchDataJSON.players[index].isRadiant ? "radiant" : "dire",
         playerKills: latestMatchDataJSON.players[index].kills,
         playerDeaths: latestMatchDataJSON.players[index].deaths,
-        playerAssists: latestMatchDataJSON.players[index].assists
+        playerAssists: latestMatchDataJSON.players[index].assists,
+        playerWon: playerWin
       });
+      // console.log(player)
       matchData.players.push(player);
       index++
     }
@@ -114,36 +121,46 @@ const GetMatchIDForm = (props) => {
     })
   }
 
-  const callAddWin = (playerIndex) =>{
-    props.addWinToPlayer(playerIndex)
+  const callAddWin = (playerInfo, playerIndex) =>{
+    props.addWinToPlayer(playerInfo, playerIndex)
   }
 
-  const callAddLoss = (playerIndex) =>{
-    props.addLossToPlayer(playerIndex)
+  const callAddLoss = (playerInfo, playerIndex) =>{
+    props.addLossToPlayer(playerInfo, playerIndex)
   }
 
   const playersNames = props.playersNames
 
   const didPlayerWin = () =>{
+    const winningTeam = gameSummary.winningTeam
+    // console.log(gameSummary)
     const playersToBeAdded = []
     const playerNamesArr = []
+    const playersToAdd = []
     gameSummary.players.forEach((player)=>{
       playersNames.forEach((playersName)=>{
         playerNamesArr.push(playersName.name)
         if(player.playerName === playersName.name && player.teamName === gameSummary.winningTeam){
           // Updated this player's record for a win
-          callAddWin(playersName.index)
+          callAddWin(player, playersName.index)
+          // callAddWin(playersName)
+          // callAddWin(playersName.index)
         }else if(player.playerName === playersName.name){
           // Updated this player's record for a loss
-          callAddLoss(playersName.index)
+          callAddLoss(player, playersName.index)
+          // callAddLoss(playersName)
+          // callAddLoss(playersName.index)
         }else if(!playerNamesArr.includes(player.playerName) && !playersToBeAdded.includes(player.playerName)){
           // player is not in the list of players yet
           playersToBeAdded.push(player.playerName)
           // would you like to add the player to the current list of players?
           console.log(`${player.playerName} is not in the current list of players`)
+          // console.log(player)
+          playersToAdd.push(player)
         }
       })
     })
+    props.playersToAdd(playersToAdd, winningTeam)
   }
 
   return(

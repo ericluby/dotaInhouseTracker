@@ -39,36 +39,6 @@ const CreateAirtableRecordForm = (props) =>{
             value={newRecord.PlayerName}
           />
         </label>
-        {/* <label>
-          Matches:
-          <input
-            name="Matches"
-            id="Matches"
-            type="number"
-            onChange={handleChange}
-            value={newRecord.Matches}
-          />
-        </label>
-        <label>
-          Wins:
-          <input
-            name="Wins"
-            id="Wins"
-            type="number"
-            onChange={handleChange}
-            value={newRecord.Wins}
-          />
-        </label>
-        <label>
-          Losses:
-          <input
-            name="Losses"
-            id="Losses"
-            type="number"
-            onChange={handleChange}
-            value={newRecord.Losses}
-          />
-        </label> */}
         <input className="button" type="submit" value="Add Player" />
       </form>
     </div>
